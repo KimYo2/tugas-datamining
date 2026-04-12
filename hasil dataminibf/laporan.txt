@@ -1,0 +1,42 @@
+================================================
+LAPORAN HASIL CLUSTERING
+Dataset: Pendidikan SD Indonesia 2023-2024
+Tanggal: 12 April 2026 12:51:07
+================================================
+
+[INFORMASI DATASET]
+- Total provinsi: 38
+- Total fitur: 16
+- Fitur yang digunakan: Sekolah, Siswa, Mengulang, Putus Sekolah, Kepala Sekolah dan Guru(<S1), Kepala Sekolah dan Guru(>S1), Tenaga Kependidikan(SM), Tenaga Kependidikan(>SM), Rombongan Belajar, Ruang kelas(baik), Ruang kelas(rusak ringan), Ruang kelas(rusak sedang), Ruang kelas(rusak berat), rasio_putus_sekolah, rasio_guru_berkualifikasi, rasio_kelas_rusak
+- Fitur turunan: rasio_putus_sekolah, rasio_guru_berkualifikasi, rasio_kelas_rusak
+
+[PCA]
+- PC1 explained variance: 72.69%
+- PC2 explained variance: 14.19%
+- Total variance explained: 86.87%
+
+[PARAMETER MODEL]
+- Jumlah Cluster (k): 2
+- KMeans: init=k-means++, max_iter=300, n_init=10, random_state=42
+- Agglomerative: linkage=ward
+
+[HASIL EVALUASI]
+- KMeans Silhouette Score    : 0.6389
+- KMeans Davies-Bouldin Score: 0.5447
+- KMeans Inertia             : 266.05
+- Agglomerative Silhouette   : 0.6633
+- Agglomerative Davies-Bouldin: 0.4369
+
+[KESIMPULAN]
+Model terbaik: Agglomerative
+Alasan: Agglomerative memiliki Silhouette Score lebih tinggi (0.6633) dan Davies-Bouldin Score lebih rendah (0.4369).
+
+[DISTRIBUSI PROVINSI PER CLUSTER — KMEANS]
+Cluster 0 (Provinsi Maju): Prov. Jawa Barat, Prov. Jawa Tengah, Prov. Jawa Timur, Prov. Sumatera Utara
+Cluster 1 (Provinsi Perlu Perhatian): Prov. D.K.I. Jakarta, Prov. D.I. Yogyakarta, Prov. Aceh, Prov. Sumatera Barat, Prov. Riau, Prov. Jambi, Prov. Sumatera Selatan, Prov. Lampung, Prov. Kalimantan Barat, Prov. Kalimantan Tengah, Prov. Kalimantan Selatan, Prov. Kalimantan Timur, Prov. Sulawesi Utara, Prov. Sulawesi Tengah, Prov. Sulawesi Selatan, Prov. Sulawesi Tenggara, Prov. Maluku, Prov. Bali, Prov. Nusa Tenggara Barat, Prov. Nusa Tenggara Timur, Prov. Papua, Prov. Bengkulu, Prov. Maluku Utara, Prov. Banten, Prov. Kepulauan Bangka Belitung, Prov. Gorontalo, Prov. Kepulauan Riau, Prov. Papua Barat, Prov. Sulawesi Barat, Prov. Kalimantan Utara, Prov. Papua Tengah, Prov. Papua Selatan, Prov. Papua Pegunungan, Prov. Papua Barat Daya
+
+[DISTRIBUSI PROVINSI PER CLUSTER — AGGLOMERATIVE]
+Cluster 0 (Provinsi Perlu Perhatian): Prov. D.K.I. Jakarta, Prov. D.I. Yogyakarta, Prov. Aceh, Prov. Sumatera Utara, Prov. Sumatera Barat, Prov. Riau, Prov. Jambi, Prov. Sumatera Selatan, Prov. Lampung, Prov. Kalimantan Barat, Prov. Kalimantan Tengah, Prov. Kalimantan Selatan, Prov. Kalimantan Timur, Prov. Sulawesi Utara, Prov. Sulawesi Tengah, Prov. Sulawesi Selatan, Prov. Sulawesi Tenggara, Prov. Maluku, Prov. Bali, Prov. Nusa Tenggara Barat, Prov. Nusa Tenggara Timur, Prov. Papua, Prov. Bengkulu, Prov. Maluku Utara, Prov. Banten, Prov. Kepulauan Bangka Belitung, Prov. Gorontalo, Prov. Kepulauan Riau, Prov. Papua Barat, Prov. Sulawesi Barat, Prov. Kalimantan Utara, Prov. Papua Tengah, Prov. Papua Selatan, Prov. Papua Pegunungan, Prov. Papua Barat Daya
+Cluster 1 (Provinsi Maju): Prov. Jawa Barat, Prov. Jawa Tengah, Prov. Jawa Timur
+
+================================================
