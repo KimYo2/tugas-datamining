@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate
 import pandas as pd
 
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'hasil dataminibf')
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'hasil datamining')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def out(nama_file):
