@@ -1,75 +1,63 @@
-import numpy as np
+import os
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+import numpy as np
 from sklearn.decomposition import PCA
-from tabulate import tabulate
-from .utils import cetak_tabel
-
-
-def muat_data(filepath='kelayakan-pendidikan-indonesia.csv'):
-    df = pd.read_csv(filepath)
-
-    cetak_tabel(df, "5 Baris Pertama Dataset", jumlah=5)
-
-    print("\n--- INFO DATASET ---")
-    df.info()
-
-    print("\n--- STATISTIK DESKRIPTIF ---")
-    print(tabulate(df.describe(), headers='keys', tablefmt='grid', floatfmt='.2f'))
-
-    print("\n--- MISSING VALUE PER KOLOM ---")
-    missing = df.isnull().sum()
-    print(tabulate([[col, val] for col, val in missing.items()],
-                   headers=['Kolom', 'Missing Value'], tablefmt='grid'))
-
-    df = df[df['Provinsi'] != 'Luar Negeri'].reset_index(drop=True)
-    print(f"\n1. Dataset berhasil dimuat. {len(df)} provinsi, {df.shape[1]} kolom.")
+def muat_data(file_path):
+    """Muat dataset CSV dan lakukan validasi keberadaan file."""
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File CSV tidak ditemukan di: {file_path}. Pastikan path file benar.")
+    return pd.read_csv(file_path)
+def bersihkan_data(df):
+    """Bersihkan data dari missing values dan duplikat."""
+    df = df.dropna()
+    df = df.drop_duplicates()
     return df
-
-
 def feature_engineering(df):
-    labels = df['Provinsi'].reset_index(drop=True)
-    X = df.drop(columns=['Provinsi']).copy()
-
-    X['rasio_putus_sekolah'] = (X['Putus Sekolah'] / X['Siswa']) * 100
-
-    guru_total = X['Kepala Sekolah dan Guru(<S1)'] + X['Kepala Sekolah dan Guru(>S1)']
-    X['rasio_guru_berkualifikasi'] = (X['Kepala Sekolah dan Guru(>S1)'] / guru_total) * 100
-
-    kelas_rusak = (X['Ruang kelas(rusak ringan)'] + X['Ruang kelas(rusak sedang)']
-                   + X['Ruang kelas(rusak berat)'])
-    kelas_total = X['Ruang kelas(baik)'] + kelas_rusak
-    X['rasio_kelas_rusak'] = (kelas_rusak / kelas_total) * 100
-
-    print("2. Feature engineering selesai. 3 fitur baru ditambahkan.")
-    cetak_tabel(
-        X[['rasio_putus_sekolah', 'rasio_guru_berkualifikasi', 'rasio_kelas_rusak']]
-        .assign(Provinsi=labels.values).set_index('Provinsi'),
-        "Fitur Turunan (5 Baris Pertama)",
-        jumlah=5
+    """Lakukan feature engineering dengan guard division by zero."""
+    # Hitung total guru dan kelas untuk denominator
+    df['guru_total'] = df['Guru Bersertifikat'] + df['Guru Tidak Bersertifikat']
+    df['kelas_total'] = df['Kelas Layak'] + df['Kelas Rusak']
+    
+    # Rasio putus sekolah (guard X['Siswa'] != 0)
+    df['rasio_putus_sekolah'] = np.where(
+        df['Siswa'] != 0,
+        (df['Siswa Putus Sekolah'] / df['Siswa']) * 100,
+        0
     )
-    return X, labels
-
-
-def scaling(X):
-    fitur_numerik = X.select_dtypes(include=[np.number]).columns.tolist()
-    for col in fitur_numerik:
-        X[col] = X[col].fillna(X[col].median())
-
+    
+    # Rasio guru berkualifikasi (guard guru_total != 0)
+    df['rasio_guru_berkualifikasi'] = np.where(
+        df['guru_total'] != 0,
+        (df['Guru Bersertifikat'] / df['guru_total']) * 100,
+        0
+    )
+    
+    # Rasio kelas rusak (guard kelas_total != 0)
+    df['rasio_kelas_rusak'] = np.where(
+        df['kelas_total'] != 0,
+        (df['Kelas Rusak'] / df['kelas_total']) * 100,
+        0
+    )
+    
+    # Hapus kolom temporary
+    df = df.drop(['guru_total', 'kelas_total'], axis=1)
+    return df
+def pilih_fitur(df):
+    """Pilih fitur yang relevan untuk clustering."""
+    fitur = ['Siswa', 'Guru Bersertifikat', 'rasio_putus_sekolah', 
+             'rasio_guru_berkualifikasi', 'rasio_kelas_rusak']
+    return df[fitur]
+def scaling_data(X):
+    """Scaling fitur menggunakan StandardScaler."""
+    from sklearn.preprocessing import StandardScaler
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X[fitur_numerik])
-    print(f"3. Scaling selesai. Total fitur: {X_scaled.shape[1]}")
-    return X_scaled, fitur_numerik, scaler
-
-
-def reduksi_pca(X_scaled):
-    pca = PCA(n_components=2, random_state=42)
+    X_scaled = scaler.fit_transform(X)
+    return X_scaled, scaler
+def reduksi_pca(X_scaled, n_components=2):
+    """Reduksi dimensi menggunakan PCA dengan peringatan variansi."""
+    pca = PCA(n_components=n_components)
     X_pca = pca.fit_transform(X_scaled)
-
-    pc1_var = pca.explained_variance_ratio_[0] * 100
-    pc2_var = pca.explained_variance_ratio_[1] * 100
-    total_var = pc1_var + pc2_var
-
-    print(f"4. PCA selesai. Variansi dijelaskan: {total_var:.2f}%")
-    print(f"   PCA: PC1={pc1_var:.2f}%, PC2={pc2_var:.2f}%, Total={total_var:.2f}%")
-    return pca, X_pca, pc1_var, pc2_var, total_var
+    total_var = sum(pca.explained_variance_ratio_) * 100
+    if total_var < 70.0:
+        print(f"⚠️  WARNING: PCA hanya menjelaskan {total_var:.1f}% variansi. Hasil visualisasi 2D mungkin tidak representatif.")
+    return X_pca, pca
